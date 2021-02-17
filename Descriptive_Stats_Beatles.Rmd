@@ -1,0 +1,130 @@
+---
+title: "Descriptive Statistics on Beatles dataset"
+author: "Karan Pillay"
+date: "November 15, 2019"
+output: html_document
+---
+
+```{r}
+d= read.csv('Beatles.csv')
+```
+## A. 
+### (A1) Determine the median song length of each album
+```{r}
+albumMed = apply(d,2, median, na.rm=T)
+albumMed
+```
+### (A2) Construct a bar graph with album name on the horizontal axis and median song length on the vertical axis
+```{r}
+
+A = data.frame(albumMed)
+library(ggplot2)
+B = ggplot(data=A, aes(x=row.names(A), y= albumMed)) +
+  geom_bar(stat="identity",  color="black", fill="pink") +
+  geom_text(aes(label= albumMed), vjust=-0.3, size=3.5) +
+  theme_minimal() + scale_x_discrete(limits=row.names(A))
+B + labs(x = "Album name", y = "Median song length") 
+```
+### (A3) Interpretation the graph
+According to the graph, Yellow Submarine (YSB) is ranked as the album has highest median song length of 200.5 second while A Hard Day's Night (HDN) made up the lowest median song length of 140 second. As the albums are ordered by release date, it is likely that median of song length for those albums released later were 
+
+### B.
+### (B1) Determine the range of song lengths for each album
+```{r}
+R =  apply(d, 2, range, na.rm = TRUE)
+R = R[2,] - R[1,]
+R
+```
+### (B2) Construct a bar graph with album name on the horizontal axis and range of song lengths on the vertical axis
+```{r}
+Bar =  data.frame(R)
+p = ggplot(data=Bar, aes(x=row.names(Bar), y=R)) +
+  geom_bar(stat="identity", fill="steelblue") + geom_text(aes(label=R), vjust=1.6, color="white", size=3.5)+ 
+  theme_minimal() + scale_x_discrete(limits=row.names(Bar))
+p + labs(x = "album name", y = "range of song length")
+```
+
+### (B3) Interpretation of the graph
+As showned above, Abbey Road (ABR) album has the widest range of song length (23~467). In other words, this album contains the biggest difference between the longest and shortest time of song length. Whereas, A Hard Day's Night (HDN) has narrowest range of song length (109~166) and contributes the smallest difference between the longest and shortest time of song length.
+
+### C.Find the quartiles of song length for each album
+```{r}
+quants = c(0.25,0.50,0.75)
+AlbumQRT = apply(d, 2, quantile, prob = quants, na.rm = TRUE)
+AlbumQRT
+```
+### D.
+### (D1) Determine the IQR of song lengths for each album
+```{r}
+AlbumIQR =  apply(d, 2, IQR, na.rm = TRUE)
+AlbumIQR
+```
+### (D2) Construct a bar graph with album name on the horizontal axis and IQR of song lengths on the vertical axis
+```{r}
+library(ggplot2)
+df = data.frame(AlbumIQR)
+p= ggplot(df, aes(x=row.names(df), y=AlbumIQR, fill=row.names(df))) +
+  geom_bar(stat="identity") + geom_text(aes(label=AlbumIQR), vjust=1.6, color="white", size=3.5) + theme_minimal() +
+   scale_x_discrete(limits=row.names(df))
+p + labs(x = "album name", y = "IQR")
+```
+### (D3) Tnterpretation of the graph
+The bar graph indicates that Abbey Road (ABR) album has the highest IQR of song lengths approximately 111 while A Hard Day's Night (HDN) album contributes lowest value of IQR of song lengths which is 21.
+
+### E.
+### (E1) Find the lower limits of song length for each album
+```{r}
+myfunc = function(){
+  mst = list()
+  for(i in seq(1,36, by = 3)){
+    lower = AlbumQRT[i]
+    mst = c(mst, lower)
+ 
+  }
+    return(mst) 
+}
+
+lsr = myfunc()
+
+val1 = as.numeric(lsr) - (1.5 * AlbumIQR)
+val1
+```
+### (E2) Identify upper limits of song length for each album
+
+```{r}
+myfunc = function(){
+  mst = list()
+  for(i in seq(3,36, by = 3)){
+    upper = AlbumQRT[i]
+    mst = c(mst, upper)
+ 
+  }
+    return(mst) 
+}
+
+lsr = myfunc()
+
+val2 = as.numeric(lsr) + (1.5 * AlbumIQR)
+val2
+```
+### (E3) Potential outliers
+```{r}
+table = matrix(NA, nrow = 2, ncol = 12)
+colnames(table) <- c("PPM","WTB","HDN","BFS","HLP","RBS","RVR","SPL","TBS","YSB","ABR","LIB")
+table[1,] = c("","","","","",202,"",307,493,383,467,"")
+table[2,] = c("","","","","",333,"","","","","","")
+table
+```
+
+### F
+###  (F1) A boxplot of the song lengths
+
+```{r}
+boxplot(d, las = 2)
+```
+
+### (F2) Interpretation of the Boxplot
+From the boxplot, it's very clear that later albums have greater variability with outliers that the earlier albums. We can also tell that the median song length has increased in later albums. It's very interesting that the last four albums contain the shortest and the longest song. The outliers in the boxplot as exactly as what we found in our list.
+
+
+
