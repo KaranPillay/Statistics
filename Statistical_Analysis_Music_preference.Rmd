@@ -1,0 +1,139 @@
+---
+title: "Research Methods Final"
+author: "Joshua Antony Joseph, Karan Pillay, Pranav Bhagat, Subahu Datta"
+date: "December 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+d <- read.csv(file="C:/Users/16282/Desktop/LA/MPS DS - MPS DS.csv", header=TRUE, sep=",")
+str(d) 
+summary(d)
+```
+
+### Shapiro-Wilk test to see if the groups are normally distributed.
+```{r}
+shapiro.test(d$Gender)
+```
+
+
+### Pearson's Correlation test.
+```{r}
+res2 <-cor.test(d$Age, d$Hours.Spent,  method = "pearson")
+res2
+```
+
+```{r}
+df = data.frame(d$Gender, d$Age,d$FavGenre,d$MusicPlatform,d$Hours.Spent,d$Location,d$ReasonofInterest,d$NewMusic)
+# print the first 6 rows
+head(df, 6)
+```
+```{r}
+res <- cor(df)
+round(res, 2)
+cor(df, use = "complete.obs")
+
+```
+### Welch's t-test to compare Age and gender means.
+```{r}
+t.test(d$Gender, d$Age, alternative = "two.sided", var.equal = FALSE)
+
+```
+```{r}
+library("Hmisc")
+```
+```{r}
+res2 <- rcorr(as.matrix(df))
+res2
+
+```
+```{r}
+res2$r
+res2$P
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+```
+
+```{r}
+library(corrplot)
+corrplot(res2$r, type="upper", order="hclust", 
+         p.mat = res2$P, sig.level = 0.01, insig = "blank")
+
+
+```
+
+# SLR
+```{r}
+linearMod <- lm(d$Gender ~ d$Hours.Spent, data=d)  # build linear regression model on full data
+print(linearMod)
+
+linearMod1 <- lm(d$Age ~ d$FavGenre, data=d)  # build linear regression model on full data
+print(linearMod1)
+
+summary(linearMod)
+AIC(linearMod)
+BIC(linearMod)
+```
+### MLR
+```{r}
+model  <- lm(d$Age ~ d$FavGenre + d$MusicPlatform + d$Hours.Spent, data = d)
+summary(model)
+
+```
+
+```{r}
+anova(linearMod)
+anova(linearMod,linearMod1)
+```
+```{r}
+.packages = c("ggplot2","plotly", "DT", "htmlwidgets")
+.inst <- .packages %in% installed.packages()
+if(length(.packages[!.inst]) > 0) install.packages(.packages[!.inst], repos = "http://cran.us.r-project.org")
+notshow = lapply(.packages, require, character.only=TRUE)
+```
+
+```{r}
+
+hist_plot=ggplot(d, aes(x=Age, color=FavGenre, fill=FavGenre))+
+  geom_histogram(aes(y=..density..), alpha=0.5,
+                 position="identity")+
+  geom_density(alpha=.3)
+hist_plot
+
+```
+```{r}
+
+box_plot=ggplot(d, aes(x=Gender, y=Hours.Spent,fill=Hours.Spent)) +
+  geom_boxplot(outlier.shape=NA, outlier.colour =NA) +
+  geom_point(position = position_jitter(h=0,w=0.3))
+box_plot
+```
+
+
+```{r}
+library(plotly)
+```
+
+
+```{r}
+
+
+# 3D Scatterplot with Coloring and Vertical Lines
+# and Regression Plane
+library(scatterplot3d)
+s3d <-scatterplot3d(d$Age,d$FavGenre,d$Hours.Spent, pch=16, highlight.3d=TRUE, type="h", main="", xlab = "Age", ylab = "Music Platform", zlab = "Hours Spent")
+fit <- lm(d$Age ~ d$FavGenre+d$Hours.Spent)
+s3d$plane3d(fit)
+```
